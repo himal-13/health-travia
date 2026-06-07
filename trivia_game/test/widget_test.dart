@@ -1,30 +1,62 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:trivia_game/main.dart';
+import 'package:trivia_game/models/course.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('Trivia Game Model Tests', () {
+    test('Question parsing and unique key generation', () {
+      final json = {
+        'course': 'Health Assistant',
+        'topic': 'First Aid',
+        'difficulty': 2,
+        'question': 'What is the correct compression-to-ventilation ratio for adult CPR?',
+        'options': ['30:2', '15:2', '30:5', '15:1'],
+        'answer': 0,
+        'explanation': 'The recommended CPR ratio is 30:2.'
+      };
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+      final question = Question.fromJson(json);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+      expect(question.course, 'Health Assistant');
+      expect(question.topic, 'First Aid');
+      expect(question.difficulty, 2);
+      expect(question.question, 'What is the correct compression-to-ventilation ratio for adult CPR?');
+      expect(question.options.length, 4);
+      expect(question.options[0], '30:2');
+      expect(question.answerIndex, 0);
+      expect(question.explanation, 'The recommended CPR ratio is 30:2.');
+      expect(question.uniqueKey, 'Health Assistant:First Aid:What is the correct compression-to-ventilation ratio for adult CPR?');
+    });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    test('Topic and Course structures', () {
+      final q1 = Question(
+        course: 'Health Assistant',
+        topic: 'First Aid',
+        difficulty: 1,
+        question: 'Q1',
+        options: ['A', 'B', 'C', 'D'],
+        answerIndex: 0,
+        explanation: 'Exp',
+      );
+      final q2 = Question(
+        course: 'Health Assistant',
+        topic: 'First Aid',
+        difficulty: 2,
+        question: 'Q2',
+        options: ['A', 'B', 'C', 'D'],
+        answerIndex: 1,
+        explanation: 'Exp',
+      );
+
+      final topic = Topic(name: 'First Aid', questions: [q1, q2]);
+      final course = Course(name: 'Health Assistant', topics: [topic]);
+
+      expect(topic.name, 'First Aid');
+      expect(topic.questions.length, 2);
+      expect(course.name, 'Health Assistant');
+      expect(course.topics.length, 1);
+      expect(course.allQuestions.length, 2);
+      expect(course.allQuestions[0].question, 'Q1');
+      expect(course.allQuestions[1].question, 'Q2');
+    });
   });
 }
